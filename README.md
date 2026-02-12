@@ -1,2 +1,2 @@
-# GO-Label-Only-MIA
+# Label-Only-MIA-Go
 待定
