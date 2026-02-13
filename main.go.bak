@@ -1,3 +1,4 @@
+/*
 package main
 
 import (
@@ -33,3 +34,4 @@ func main() {
 	
 	// fmt.Printf("攻击结果: Distance=%f, Success=%v\n", result.Distance, result.IsSuccess)
 }
+*/
