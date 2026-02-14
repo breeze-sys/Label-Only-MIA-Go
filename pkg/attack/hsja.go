@@ -2,8 +2,8 @@ package attack
 
 import (
 	"math"
-	"my-project/pkg/core"
-	"my-project/pkg/mathutils"
+	"label-only-mia-go/pkg/core"
+	"label-only-mia-go/pkg/mathutils"
 )
 
 // HSJAConfig 配置攻击参数
