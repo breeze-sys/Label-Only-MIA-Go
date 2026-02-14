@@ -1,4 +1,4 @@
-package basic
+package mathutils
 
 // NewVector 创建一个指定大小并填充特定值的向量
 // 对应 Python: np.zeros, np.full
