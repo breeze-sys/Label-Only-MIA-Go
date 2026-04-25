@@ -16,15 +16,10 @@ const (
 // pkg/audit/engine.go
 
 type AuditThresholds struct {
-	// 将 tau_95 改为 threshold
-	Tau95 float64 `json:"threshold"`
-
-	// 将 tau_opt 改为 mean_member_loss
-	TauOpt float64 `json:"mean_member_loss"`
-
-	// 这两个值是 main.go 现场算的，JSON 里没有也没关系
-	TauD  float64 `json:"tau_d"`
-	TauCV float64 `json:"tau_cv"`
+	Tau95  float64 `json:"tau_95"`
+	TauOpt float64 `json:"tau_opt"`
+	TauD   float64 `json:"tau_d"`
+	TauCV  float64 `json:"tau_cv"`
 }
 
 type Engine struct {

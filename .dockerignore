@@ -1,0 +1,11 @@
+.git
+.codex
+.gocache
+venv
+__pycache__
+*.pyc
+
+output
+data
+python_server/CIFAR10
+python_server/data

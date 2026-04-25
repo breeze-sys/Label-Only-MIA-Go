@@ -1,0 +1,84 @@
+services:
+  target-oracle:
+    build:
+      context: .
+      dockerfile: docker/oracle.Dockerfile
+    environment:
+      PORT: 8000
+      SERVICE_NAME: target-oracle
+      MODEL_PATH: ${TARGET_MODEL_PATH:-python_server/CIFAR10/target/3000/best_checkpoint_ep.pth}
+    ports:
+      - "${HOST_TARGET_PORT:-8000}:8000"
+    volumes:
+      - ./python_server/CIFAR10:/app/python_server/CIFAR10:ro
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import os, urllib.request; urllib.request.urlopen('http://127.0.0.1:%s/health' % os.environ.get('PORT', '8000')).read()\""]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+  shadow-oracle:
+    build:
+      context: .
+      dockerfile: docker/oracle.Dockerfile
+    environment:
+      PORT: 8001
+      SERVICE_NAME: shadow-oracle
+      MODEL_PATH: ${SHADOW_MODEL_PATH:-python_server/CIFAR10/shadow/3000/best_checkpoint_ep.pth}
+    ports:
+      - "${HOST_SHADOW_PORT:-8001}:8001"
+    volumes:
+      - ./python_server/CIFAR10:/app/python_server/CIFAR10:ro
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import os, urllib.request; urllib.request.urlopen('http://127.0.0.1:%s/health' % os.environ.get('PORT', '8001')).read()\""]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+  audit-runner:
+    build:
+      context: .
+      dockerfile: docker/audit-runner.Dockerfile
+    depends_on:
+      target-oracle:
+        condition: service_healthy
+      shadow-oracle:
+        condition: service_healthy
+    environment:
+      TARGET_API: ${TARGET_API:-http://target-oracle:8000}
+      SHADOW_API: ${SHADOW_API:-http://shadow-oracle:8001}
+      SHADOW_CONFIG_PATH: ${SHADOW_CONFIG_PATH:-shadow_config.json}
+      CALIBRATION_DATA_PATH: ${CALIBRATION_DATA_PATH:-data/cifar-10-batches-bin/test_batch.bin}
+      MEMBER_DATA_PATH: ${MEMBER_DATA_PATH:-data/cifar-10-batches-bin/data_batch_1.bin}
+      NON_MEMBER_DATA_PATH: ${NON_MEMBER_DATA_PATH:-data/cifar-10-batches-bin/test_batch.bin}
+      OUTPUT_REPORT_PATH: ${OUTPUT_REPORT_PATH:-output/audit_report.json}
+      CALIBRATION_CANDIDATE_COUNT: ${CALIBRATION_CANDIDATE_COUNT:-100}
+      CALIBRATION_TARGET_COUNT: ${CALIBRATION_TARGET_COUNT:-10}
+      MIN_VALID_STRANGERS: ${MIN_VALID_STRANGERS:-5}
+      MEMBER_SAMPLE_COUNT: ${MEMBER_SAMPLE_COUNT:-5}
+      NON_MEMBER_SAMPLE_COUNT: ${NON_MEMBER_SAMPLE_COUNT:-5}
+      AUDIT_WORKERS: ${AUDIT_WORKERS:-20}
+    volumes:
+      - ./data:/app/data:ro
+      - ./shadow_config.json:/app/shadow_config.json:ro
+      - ./output:/app/output
+    restart: "no"
+
+  threshold-generator:
+    build:
+      context: .
+      dockerfile: docker/oracle.Dockerfile
+    profiles: ["tools"]
+    environment:
+      SHADOW_MODEL_PATH: ${SHADOW_MODEL_PATH:-python_server/CIFAR10/shadow/3000/best_checkpoint_ep.pth}
+      SHADOW_CLUSTER: 3000
+      SHADOW_CONFIG_OUTPUT: shadow_config.json
+      DATA_ROOT: python_server/data
+      ALLOW_DATASET_DOWNLOAD: "false"
+    command: ["python", "python_server/calc_thresholds.py"]
+    volumes:
+      - ./python_server/CIFAR10:/app/python_server/CIFAR10:ro
+      - ./python_server/data:/app/python_server/data:ro
+      - ./shadow_config.json:/app/shadow_config.json

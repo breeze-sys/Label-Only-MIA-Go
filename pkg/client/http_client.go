@@ -80,6 +80,9 @@ func (c *HTTPClient) Predict(img core.Image) (int, error) {
 		return -1, err
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return -1, fmt.Errorf("predict 接口报错: %d", resp.StatusCode)
+	}
 
 	var result responseBody
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
@@ -135,6 +138,9 @@ func (c *HTTPClient) PredictBatch(imgs []core.Image) ([]int, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("predict_batch 接口报错: %d", resp.StatusCode)
+	}
 
 	var result batchResponse
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {

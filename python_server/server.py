@@ -4,7 +4,6 @@
 # ==========================================
 
 import torch
-import torch.nn as nn
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List
@@ -17,8 +16,9 @@ import sys
 from classifier import CNN
 
 # ================= 配置参数 =================
-MODEL_ARCH = 'CNN7'       
-DATASET_NAME = 'CIFAR10' 
+MODEL_ARCH = os.getenv("MODEL_ARCH", "CNN7")
+DATASET_NAME = os.getenv("DATASET_NAME", "CIFAR10")
+SERVICE_NAME = os.getenv("SERVICE_NAME", "oracle")
 
 # 【核心修改】：优先从环境变量读取路径，如果没有则使用默认值
 # 默认指向目标模型 (Target)，但启动影子服务时可以通过环境变量覆盖
@@ -37,7 +37,7 @@ model = None
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global model
-    print(f"\n======== 服务启动 (Process ID: {os.getpid()}) ========")
+    print(f"\n======== {SERVICE_NAME} 服务启动 (Process ID: {os.getpid()}) ========")
     print(f"[*] 检测设备: {DEVICE}")
     print(f"[*] 加载模型路径: {CHECKPOINT_PATH}")
     
@@ -111,6 +111,12 @@ class BatchPredictResponse(BaseModel):
 
 # --- API 实现 ---
 
+@app.get("/health")
+async def health():
+    if model is None:
+        raise HTTPException(503, "Model not ready")
+    return {"status": "ok", "service": SERVICE_NAME}
+
 # 接口 1: 单图预测 (兼容 /predict 和 /predict_logits)
 @app.post("/predict", response_model=PredictResponse)
 @app.post("/predict_logits", response_model=PredictResponse) # 别名路由，防备队友写错路径
@@ -157,10 +163,8 @@ async def predict_batch(req: BatchPredictRequest):
 
 # 本地调试用
 if __name__ == "__main__":
-    # 关键修改：从环境变量读取 PORT，如果没设置则默认用 8000
-    import os
     port_str = os.getenv("PORT", "8000") 
     port = int(port_str)
     
     print(f"🚀 服务即将启动在端口: {port}")
-    uvicorn.run("server:app", host="0.0.0.0", port=port, reload=False)
+    uvicorn.run(app, host="0.0.0.0", port=port, reload=False)

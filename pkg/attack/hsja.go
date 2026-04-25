@@ -44,13 +44,22 @@ func (atk *HSJA) Attack(sample core.Sample, model core.Model) core.AttackResult 
 
 	predictFunc := func(img []float32) int {
 		queries++
-		// 注意：将 []float32 转换为 core.Image 以匹配接口
-		l, _ := model.Predict(core.Image(img))
+		l, err := model.Predict(core.Image(img))
+		if err != nil {
+			return -1
+		}
 		return l
 	}
 
 	original := sample.Data
-	targetLabel := sample.Label
+	targetLabel := predictFunc(original)
+	if targetLabel < 0 {
+		return core.AttackResult{
+			SampleID: sample.ID,
+			Distance: 0.0,
+			Queries:  queries,
+		}
+	}
 
 	// 1. 初始化
 	xAdv := atk.initialize(original, targetLabel, predictFunc)

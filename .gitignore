@@ -1,0 +1,12 @@
+.codex
+.gocache/
+.env
+
+__pycache__/
+*.pyc
+
+venv/
+
+bin/
+dist/
+Label-Only-MIA-Go

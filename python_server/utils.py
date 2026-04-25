@@ -15,6 +15,8 @@ import torch.backends.cudnn as cudnn
 import seaborn as sns
 import matplotlib.legend
 
+DATA_ROOT = os.getenv("DATA_ROOT", "python_server/data")
+ALLOW_DATASET_DOWNLOAD = os.getenv("ALLOW_DATASET_DOWNLOAD", "false").lower() in ("1", "true", "yes")
 
 def load_dataset(args, dataset, cluster=None, mode = 'target', max_num = 2000):
     kwargs = {'num_workers': 2, 'pin_memory': True}
@@ -32,19 +34,19 @@ def load_dataset(args, dataset, cluster=None, mode = 'target', max_num = 2000):
             transform = transforms.Compose([transforms.ToTensor()])
             
     if dataset == 'CIFAR10':
-        whole_set = datasets.CIFAR10('data', train=True, download=True, transform=transform)
+        whole_set = datasets.CIFAR10(DATA_ROOT, train=True, download=ALLOW_DATASET_DOWNLOAD, transform=transform)
         max_cluster = 3000
         test_size = 1000
     elif dataset == 'CIFAR100':
-        whole_set = datasets.CIFAR100('data', train=True, download=True, transform=transform)
+        whole_set = datasets.CIFAR100(DATA_ROOT, train=True, download=ALLOW_DATASET_DOWNLOAD, transform=transform)
         max_cluster = 7000
         test_size = 1000
     elif dataset == 'GTSRB':
-        whole_set = datasets.ImageFolder('data/GTSRB/', transform= transform)
+        whole_set = datasets.ImageFolder(os.path.join(DATA_ROOT, 'GTSRB'), transform= transform)
         max_cluster = 600
         test_size = 500
     elif dataset == 'Face':
-        whole_set = datasets.ImageFolder('data/lfw/', transform=transform)
+        whole_set = datasets.ImageFolder(os.path.join(DATA_ROOT, 'lfw'), transform=transform)
         max_cluster = 350
         test_size = 100
     # elif dataset == 'TinyImageNet':
@@ -113,7 +115,7 @@ def load_dataset_DataAug_AdvReg(args, dataset, cluster=None, defense=None):
         transform = transforms.Compose([transforms.ToTensor()])
 
     if dataset == 'CIFAR10':
-        whole_set = datasets.CIFAR10('data', train=True, download=True, transform=transform)
+        whole_set = datasets.CIFAR10(DATA_ROOT, train=True, download=ALLOW_DATASET_DOWNLOAD, transform=transform)
         test_size = 1000
 
     length = len(whole_set)
