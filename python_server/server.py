@@ -24,6 +24,8 @@ DATASET_NAME = 'CIFAR10'
 # 默认指向目标模型 (Target)，但启动影子服务时可以通过环境变量覆盖
 DEFAULT_PATH = 'python_server/CIFAR10/shadow_json_aligned/best_checkpoint_ep.pth'
 CHECKPOINT_PATH = os.getenv("MODEL_PATH", DEFAULT_PATH)
+MODEL_DROPOUT_ENV = os.getenv("MODEL_DROPOUT")
+MODEL_DROPOUT_P = float(os.getenv("MODEL_DROPOUT_P", "0.5"))
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -32,6 +34,12 @@ FLATTENED_SIZE = 3072 # 3 * 32 * 32
 # ===========================================
 
 model = None
+
+
+def resolve_dropout(model_path: str) -> bool:
+    if MODEL_DROPOUT_ENV is not None:
+        return MODEL_DROPOUT_ENV.lower() in {"1", "true", "yes", "on"}
+    return "shadow_json_aligned" in model_path
 
 # --- 生命周期管理 ---
 @asynccontextmanager
@@ -47,7 +55,12 @@ async def lifespan(app: FastAPI):
         sys.exit(1)
     
     # 1. 初始化
-    model_instance = CNN(MODEL_ARCH, DATASET_NAME)
+    model_instance = CNN(
+        MODEL_ARCH,
+        DATASET_NAME,
+        dropout=resolve_dropout(CHECKPOINT_PATH),
+        dropout_p=MODEL_DROPOUT_P,
+    )
     
     # 2. 加载权重
     try:
