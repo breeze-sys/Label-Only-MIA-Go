@@ -25,14 +25,14 @@ parameters = {
     'TinyImageNet': [3, 200],
 }
 class CNN(nn.Module):
-    def __init__(self, CNN_name, dataset, dropout=False):
+    def __init__(self, CNN_name, dataset, dropout=False, dropout_p=0.5):
         super(CNN, self).__init__()
         self.dataset = dataset
         self.query_num = 0
         self.features = self._make_layers(mycfg[CNN_name])
         if dropout:
             self.classifier = nn.Sequential(
-                nn.Dropout(0.6),
+                nn.Dropout(dropout_p),
                 nn.Linear(512, 256),
                 nn.ReLU(True),
                 nn.Linear(256, parameters[self.dataset][1]) )

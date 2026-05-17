@@ -1,0 +1,16 @@
+{
+  "device": "cuda",
+  "dataset_size": 10000,
+  "train_size": 9000,
+  "val_size": 1000,
+  "best_epoch": 14,
+  "best_checkpoint": "/tmp/labelscan-shadow-gpu8/best_checkpoint_ep.pth",
+  "last_checkpoint": "/tmp/labelscan-shadow-gpu8/last_checkpoint_ep.pth",
+  "train_indices": "/tmp/labelscan-shadow-gpu8/train_indices.json",
+  "val_indices": "/tmp/labelscan-shadow-gpu8/val_indices.json",
+  "target_loss": 0.43,
+  "hard_stop_loss": 0.45,
+  "label_smoothing": 0.1,
+  "weight_decay": 0.001,
+  "max_samples": 10000
+}
