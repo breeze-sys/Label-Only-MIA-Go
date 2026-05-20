@@ -1,0 +1,92 @@
+services:
+  target-oracle:
+    build:
+      context: .
+      dockerfile: docker/oracle.Dockerfile
+    environment:
+      PORT: 8000
+      SERVICE_NAME: target-oracle
+      MODEL_PATH: ${TARGET_MODEL_PATH:-python_server/CIFAR10/target/3000/best_checkpoint_ep.pth}
+    ports:
+      - "${HOST_TARGET_PORT:-8000}:8000"
+    volumes:
+      - ./python_server/CIFAR10:/app/python_server/CIFAR10:ro
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import os, urllib.request; urllib.request.urlopen('http://127.0.0.1:%s/health' % os.environ.get('PORT', '8000')).read()\""]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+  shadow-oracle:
+    build:
+      context: .
+      dockerfile: docker/oracle.Dockerfile
+    environment:
+      PORT: 8001
+      SERVICE_NAME: shadow-oracle
+      MODEL_PATH: ${SHADOW_MODEL_PATH:-python_server/CIFAR10/shadow_json_aligned/best_checkpoint_ep.pth}
+      MODEL_DROPOUT: ${SHADOW_MODEL_DROPOUT:-1}
+    ports:
+      - "${HOST_SHADOW_PORT:-8001}:8001"
+    volumes:
+      - ./python_server/CIFAR10:/app/python_server/CIFAR10:ro
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import os, urllib.request; urllib.request.urlopen('http://127.0.0.1:%s/health' % os.environ.get('PORT', '8001')).read()\""]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+  audit-runner:
+    build:
+      context: .
+      dockerfile: docker/audit-runner.Dockerfile
+    depends_on:
+      target-oracle:
+        condition: service_healthy
+      shadow-oracle:
+        condition: service_healthy
+    command:
+      - /app/labelscan
+      - --preset
+      - ${LABELSCAN_PRESET:-standard}
+      - --target-api
+      - http://target-oracle:8000
+      - --shadow-api
+      - http://shadow-oracle:8001
+      - --shadow-config
+      - shadow_config.json
+      - --calibration-data
+      - data/cifar-10-batches-bin/test_batch.bin
+      - --member-data
+      - data/cifar-10-batches-bin/data_batch_1.bin
+      - --non-member-data
+      - data/cifar-10-batches-bin/test_batch.bin
+      - --json-report
+      - output/audit_report.json
+      - --html-report
+      - output/audit_report.html
+    volumes:
+      - ./data:/app/data:ro
+      - ./shadow_config.json:/app/shadow_config.json:ro
+      - ./output:/app/output
+    restart: "no"
+
+  threshold-generator:
+    build:
+      context: .
+      dockerfile: docker/oracle.Dockerfile
+    profiles: ["tools"]
+    environment:
+      SHADOW_MODEL_PATH: ${SHADOW_MODEL_PATH:-python_server/CIFAR10/shadow_json_aligned/best_checkpoint_ep.pth}
+      SHADOW_TRAIN_INDICES_PATH: ${SHADOW_TRAIN_INDICES_PATH:-python_server/CIFAR10/shadow_json_aligned/train_indices.json}
+      SHADOW_JSON_PATH: ${SHADOW_JSON_PATH:-shadow_train_data.json}
+      SHADOW_CONFIG_OUTPUT: shadow_config.json
+      SHADOW_RED_QUANTILE: ${SHADOW_RED_QUANTILE:-40}
+      MODEL_DROPOUT_P: ${MODEL_DROPOUT_P:-0.5}
+    command: ["python", "python_server/calc_thresholds.py"]
+    volumes:
+      - ./python_server/CIFAR10:/app/python_server/CIFAR10:ro
+      - ./shadow_train_data.json:/app/shadow_train_data.json:ro
+      - ./shadow_config.json:/app/shadow_config.json
