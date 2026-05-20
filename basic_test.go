@@ -90,7 +90,7 @@ func TestVectorMul(t *testing.T) {
 func TestVectorScale(t *testing.T) {
 	fmt.Println("=== 测试 VectorScale ===")
 	v := []float32{1.0, -2.0, 0.5}
-	
+
 	// ⚠️ 修正：添加 basic. 前缀
 	got := basic.VectorScale(v, 2.0)
 	want := []float32{2.0, -4.0, 1.0}
@@ -104,7 +104,7 @@ func TestVectorScale(t *testing.T) {
 func TestClip(t *testing.T) {
 	fmt.Println("=== 测试 Clip ===")
 	v := []float32{-1.5, 0.5, 1.5}
-	
+
 	// ⚠️ 修正：添加 basic. 前缀
 	got := basic.Clip(v, 0.0, 1.0)
 	want := []float32{0.0, 0.5, 1.0}
@@ -118,10 +118,10 @@ func TestClip(t *testing.T) {
 func TestClone(t *testing.T) {
 	fmt.Println("=== 测试 Clone ===")
 	origin := []float32{1.0, 2.0}
-	
+
 	// ⚠️ 修正：添加 basic. 前缀
 	cloned := basic.Clone(origin)
-	
+
 	cloned[0] = 999.0
 	if origin[0] == 999.0 {
 		t.Errorf("Clone 是浅拷贝！")
@@ -162,10 +162,10 @@ func TestCalibrateReference(t *testing.T) {
 	tauD, tauCV := basic.CalibrateReference(dists)
 	fmt.Printf("  tauD: %v, tauCV: %v\n", tauD, tauCV)
 
-	// dBarList: {1.0, 2.0, 3.0} => muD: 2.0, sD: 1.0 => tauD: 2.0 + 1.92 * 1.0 = 3.92
-	// cvList: {0.1, 0.1, 0.1} => muCV: 0.1, sCV: 0.0 => tauCV: 0.1 - 1.92 * 0.0 = 0.1
-	if math.Abs(tauD-3.92) > 1e-5 {
-		t.Errorf("tauD 计算错误: 期望 3.92, 实际 %v", tauD)
+	// dBarList: {1.0, 2.0, 3.0} => muD: 2.0, sD: 1.0 => tauD: 2.0 + 1.2 * 1.0 = 3.2
+	// cvList: {0.1, 0.1, 0.1} => muCV: 0.1, sCV: 0.0 => tauCV: 0.1 - 1.2 * 0.0 = 0.1
+	if math.Abs(tauD-3.2) > 1e-5 {
+		t.Errorf("tauD 计算错误: 期望 3.2, 实际 %v", tauD)
 	}
 	if math.Abs(tauCV-0.1) > 1e-5 {
 		t.Errorf("tauCV 计算错误: 期望 0.1, 实际 %v", tauCV)

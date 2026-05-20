@@ -1,0 +1,74 @@
+{
+  "tool": "LabelScan-Go",
+  "version": "tool-v1",
+  "generated_at": "2026-05-20T11:15:44+08:00",
+  "config": {
+    "preset": "smoke",
+    "target_api": "http://localhost:8000",
+    "shadow_api": "http://localhost:8001",
+    "shadow_config_path": "shadow_config.json",
+    "calibration_data_path": "data/cifar-10-batches-bin/test_batch.bin",
+    "member_data_path": "data/cifar-10-batches-bin/data_batch_1.bin",
+    "non_member_data_path": "data/cifar-10-batches-bin/test_batch.bin",
+    "json_report_path": "output/tool_smoke_report.json",
+    "html_report_path": "output/tool_smoke_report.html",
+    "calibration_candidate_count": 10,
+    "calibration_target_count": 1,
+    "min_valid_strangers": 1,
+    "member_sample_count": 1,
+    "non_member_sample_count": 1,
+    "audit_workers": 2,
+    "max_queries": 800,
+    "max_iterations": 8,
+    "num_evals": 30
+  },
+  "thresholds": {
+    "threshold": 0.18153139948844915,
+    "mean_member_loss": 0.5284404158620358,
+    "tau_d": 0.5,
+    "tau_cv": 0.05
+  },
+  "metrics": {
+    "total": 2,
+    "member_samples": 1,
+    "non_member_samples": 1,
+    "predicted_risk": 2,
+    "true_positive": 1,
+    "false_positive": 1,
+    "true_negative": 0,
+    "false_negative": 0,
+    "accuracy": 0.5,
+    "precision": 0.5,
+    "recall": 1,
+    "high_risk_rate": 1,
+    "mean_shadow_loss": 0.49295814790834724,
+    "mean_boundary_distance": 4.468676651556742,
+    "mean_volatility_cv": 0.06488146374797385
+  },
+  "samples": [
+    {
+      "sample_id": 0,
+      "label": 6,
+      "is_member_true": true,
+      "predicted_risk": true,
+      "risk_level": "high_risk",
+      "risk_class": "risk-yellow",
+      "shadow_loss": 0.12285107543700918,
+      "mean_boundary_distance": 7.270831145735198,
+      "volatility_cv": 0.06203214264478435,
+      "conclusion": "🟡 【 风险极高 - 高度可疑 】"
+    },
+    {
+      "sample_id": 1,
+      "label": 3,
+      "is_member_true": false,
+      "predicted_risk": true,
+      "risk_level": "medium_risk",
+      "risk_class": "risk-orange",
+      "shadow_loss": 0.8630652203796852,
+      "mean_boundary_distance": 1.6665221573782858,
+      "volatility_cv": 0.06773078485116336,
+      "conclusion": "🟠 【 中度风险 - 疑似成员 】"
+    }
+  ]
+}

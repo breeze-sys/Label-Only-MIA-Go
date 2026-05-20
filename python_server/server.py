@@ -94,6 +94,16 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="MIA Attack Oracle", lifespan=lifespan)
 
+
+@app.get("/health")
+async def health():
+    return {
+        "status": "ok" if model is not None else "loading",
+        "model_loaded": model is not None,
+        "model_path": CHECKPOINT_PATH,
+        "device": DEVICE,
+    }
+
 # --- 协议定义 (对齐 Go 的 types.go) ---
 class PredictRequest(BaseModel):
     image: List[float] # [3072]
